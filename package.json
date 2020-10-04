@@ -28,6 +28,7 @@
     "http-errors": "^1.8.0",
     "morgan": "^1.10.0",
     "sequelize": "^6.3.5",
+    "sequelize-cli": "^6.2.0",
     "sqlite": "^4.0.15"
   },
   "devDependencies": {
