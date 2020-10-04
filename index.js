@@ -18,7 +18,8 @@ const cors = require('cors');
 const logger = require('morgan');
 const bodyParser = require('body-parser');
 const session = require('express-session');
-const {ExpressOIDC} = require('@okta/oidc-middleware');
+const indexRouter = require('./routes/index');
+let {oidc} = require('./middleware/hasAuth');
 const app = express();
 const port = 3000;
 
@@ -29,20 +30,6 @@ app.use(session({
 	saveUninitialized: false
 }));
 
-const oidc = new ExpressOIDC({
-	issuer: `${process.env.OKTA_ORG_URL}/oauth2/default`,
-	client_id: process.env.OKTA_CLIENT_ID,
-	client_secret: process.env.OKTA_CLIENT_SECRET,
-	loginRedirectUri: process.env.REDIRECT_URL,
-	appBaseUrl: process.env.APP_BASE_URL,
-	scope: 'openid profile',
-	routes: {
-		callback: {
-			path: '/authorization-code/callback',
-			defaultRedirect: '/admin'
-		}
-	}
-})
 
 app.use(logger('dev'));
 
@@ -50,14 +37,7 @@ app.use(logger('dev'));
 app.use(oidc.router);
 app.use(cors());
 app.use(bodyParser.json());
-
-app.get('/home', (req, res) => {
-	res.send('<h1>Welcome!!</div><a href="/login">Login</a>');
-});
-
-app.get('/admin', (req, res) =>{
-	res.send('Admin page');
-});
+app.use('/', indexRouter);
 
 app.listen(port, () => console.log(`Simple Blog App listening on port ${port}!`))
 
@@ -71,7 +51,7 @@ app.use(function (err, res, next) {
 app.use(function (err, req, next) {
 	res.locals.message = err.message;
 	res.locals.error = req.app.get('dev') === 'development' ? err : {};
-
+	
 	render.status(err.status || 500);
 	// res.render('error');
 });
